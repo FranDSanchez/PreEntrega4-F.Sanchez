@@ -1,7 +1,7 @@
 import { json } from "express";
 import fs from "fs";
 
-const pathFile = "./src/data/fs/carts.json";
+const pathFile = "./src/dao/fsManagers/carts.json";
 //Clase Manager de Carrito
 class CartsManager {
   constructor() {
@@ -36,20 +36,22 @@ class CartsManager {
       console.log(`No existe este ID del carrito: |${cid} |`);
     }
   }
-  //Muestro Carrito por su ID, y Los productos
+  //Busco por ID el Carrito, y agrego los productos pasados por parametro
   async addProductCart(cid, pid) {
     await this.getCarts();
-    const indexCart = this.carts.findIndex((cart) => cart.id === parseInt(cid));
+    const indexCart = this.carts.findIndex((cart) => cart.id === parseInt(cid)); //Busco el id Carrito
     if (indexCart !== -1) {
       const cart = this.carts[indexCart];
 
+      //Busco el producto por su ID
       const productExist = cart.products.findIndex(
         (p) => p.product === parseInt(pid)
       );
       if (productExist !== -1) {
+        //Si lo encuentra,agrego mas productos del mismo
         cart.products[productExist].quantity++;
-        console.log("Entro a la suma de quantity");
       } else {
+        //Si no, agrego ese nuevo producto
         cart.products.push({
           product: parseInt(pid),
           quantity: 1,

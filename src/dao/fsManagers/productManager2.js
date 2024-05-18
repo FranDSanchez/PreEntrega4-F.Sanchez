@@ -1,7 +1,7 @@
 import log from "console";
 import fs from "fs";
 
-let pathFile = "./src/data/fs/products.JSON";
+let pathFile = "./src/dao/fsManagers/products.JSON";
 /* Creo la clase */
 
 class ProductManager {

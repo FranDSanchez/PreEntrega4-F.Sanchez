@@ -1,7 +1,12 @@
 import express, { response } from "express";
-import productManager from "./src/data/fs/productManager2.js";
+import productManager from "./src/dao/fsManagers/productManager2.js";
 import router from "./src/routes/index.js";
-import cartsManager from "./src/data/fs/cartsManager.js";
+import cartsManager from "./src/dao/fsManagers/cartsManager.js";
+import { connectMongoDB } from "./src/config/mongoDb.config.js";
+
+//Conexion con la base de datos
+connectMongoDB();
+
 //para crear una aplicacion/servidor de express
 const app = express();
 //para inicializar la app de rexpress necesito configurar:

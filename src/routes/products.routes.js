@@ -1,10 +1,13 @@
-import { Router } from "express";
-import productManager from "../data/fs/productManager2.js";
+import { Router, response } from "express";
+import productManager from "../dao/fsManagers/productManager2.js";
+import productDao from "../dao/mongoDao/product.dao.js";
 
 const router = Router();
 
+//Agrego Productos
 router.post("/", addProduct);
 
+//Muestro todos los Productos
 router.get("/", getProducts);
 
 //ruta GET para buscar producto por ID
@@ -16,6 +19,7 @@ router.put("/:pid", updateProductById);
 //Ruta DELETE para eliminar producto pasando parametro por ID
 router.delete("/:pid", deleteProduct);
 
+//Funcion Agrego Productos
 async function addProduct(req, res) {
   try {
     const product = {
@@ -29,10 +33,10 @@ async function addProduct(req, res) {
       thumbnail: req.body.thumbnail,
       status: req.body.status,
     };
-    const newProduct = await productManager.addProduct(product);
+    const newProduct = await productDao.create(product);
     return res.json({
       status: 201,
-      response: newProduct || "Productos Creados con exito",
+      payload: newProduct || "Productos Creados con exito",
     });
   } catch (error) {
     console.log(error);
@@ -43,13 +47,13 @@ async function addProduct(req, res) {
   }
 }
 
-//Muestro los productos
+//Funcion Muestro los productos
 async function getProducts(req, res) {
   try {
-    const { limit } = req.query; //realizo una consulta,
-    const products = await productManager.getProducts(limit); //se muestra todos los productos hasta al ID pasado por parametro
+    // const { limit } = req.query; //realizo una consulta,
+    const products = await productDao.getAll(); //se muestra todos los productos hasta al ID pasado por parametro
     if (products) {
-      return res.json({ status: 200, response: products, limit });
+      return res.json({ status: "sucess", payload: products });
     }
     const error = new Error(`Error al cargar`);
     error.status = 404;
@@ -63,15 +67,15 @@ async function getProducts(req, res) {
   }
 }
 
-//Muestro por ID productos
+//Funcion Muestro por ID productos
 async function getProductById(req, res) {
   try {
     const { pid } = req.params;
-    const productId = await productManager.getProductById(pid);
+    const productId = await productDao.getById(pid);
 
     //Valido si existe el ID
     if (productId) {
-      return res.json({ status: 200, response: productId });
+      return res.json({ status: 200, payload: productId });
     }
     const error = new Error(`El producto con ID:| ${pid} | no existe`);
     error.status = 404;
@@ -85,14 +89,15 @@ async function getProductById(req, res) {
   }
 }
 
+//Funcion para actualizar un producto pasando por parametro ID
 async function updateProductById(req, res) {
   try {
     const { pid } = req.params;
-    const product = req.body;
+    const productData = req.body;
 
-    const updateProduct = await productManager.updateProduct(pid, product);
+    const updateProduct = await productDao.update(pid, productData);
     if (updateProduct) {
-      return res.json({ status: 201, response: updateProduct });
+      return res.json({ status: "sucess", payload: updateProduct });
     }
     const error = new Error(`El producto con ID:| ${pid} | no existe`);
     error.status = 404;
@@ -106,20 +111,22 @@ async function updateProductById(req, res) {
   }
 }
 
+//Funcion para eliminar producto pasando parametro por ID
 async function deleteProduct(req, res) {
   try {
     const { pid } = req.params;
 
-    const deleteProduct = await productManager.deleteProduct(pid);
-    if (deleteProduct) {
-      return res.json({
-        status: 201,
-        message: `Producto con ID ${pid} ha sido eliminado`,
-      });
+    const deleteProduct = await productDao.deleteOne(pid);
+    if (!deleteProduct) {
+      const error = new Error(`El producto con ID:| ${pid} | no existe`);
+      error.status = 404;
+      throw error;
     }
-    const error = new Error(`El producto con ID:| ${pid} | no existe`);
-    error.status = 404;
-    throw error;
+
+    return res.json({
+      status: 200,
+      message: `Producto con ID ${pid} ha sido eliminado`,
+    });
   } catch (error) {
     console.log(error);
     return res.json({
